@@ -173,16 +173,16 @@ class Aluno {
      * @param idAluno Identificador único do aluno
      * @returns Objeto com informações do aluno
      */
-    static async listarAluno(idAluno: number): Promise<AlunoDTO | null> {
+    static async listarAluno(id_aluno: number): Promise<AlunoDTO | null> {
         try {
             // Bloco try: aqui tentamos executar o código que pode gerar um erro.
             // Se ocorrer algum erro dentro deste bloco, ele será capturado pelo catch.
 
             // Define a query SQL para selecionar um aluno com base no ID fornecido
-            const querySelectAluno = `SELECT * FROM aluno WHERE id_aluno = ${idAluno}`;
+            const querySelectAluno = `SELECT * FROM aluno WHERE id_aluno = $1`;
 
             // Executa a consulta no banco de dados e aguarda o resultado
-            const respostaBD = await database.query(querySelectAluno);
+            const respostaBD = await database.query(querySelectAluno, [id_aluno]);
 
             // Cria um novo objeto da classe Aluno com os dados retornados do banco
             const alunoDTO: AlunoDTO = {
@@ -220,18 +220,15 @@ class Aluno {
         try {
             // Cria a consulta (query) para inserir o registro de um aluno no banco de dados, retorna o ID do aluno que foi criado no final
             const queryInsertAluno = `INSERT INTO Aluno (nome, sobrenome, data_nascimento, endereco, email, celular)
-                                            VALUES (
-                                                '${aluno.getNome().toUpperCase()}',
-                                                '${aluno.getSobrenome().toUpperCase()}',
-                                                '${aluno.getDataNascimento()}',
-                                                '${aluno.getEndereco().toUpperCase()}',
-                                                '${aluno.getEmail().toLowerCase()}',
-                                                '${aluno.getCelular()}'
-                                            )
-                                            RETURNING id_aluno;`;
+                                            VALUES ('$1','$2','$3','$4','$5','$6') RETURNING id_aluno;`;
 
             // Executa a query no banco de dados e armazena o resultado
-            const result = await database.query(queryInsertAluno);
+            const result = await database.query(queryInsertAluno, [aluno.getNome().toUpperCase(),
+            aluno.getSobrenome().toUpperCase(),
+            aluno.getDataNascimento(),
+            aluno.getEndereco().toUpperCase(),
+            aluno.getEmail().toLowerCase(),
+            aluno.getCelular()]);
 
             // verifica se a quantidade de linhas que foram alteradas é maior que 0
             if (result.rows.length > 0) {
@@ -264,15 +261,16 @@ class Aluno {
             if (aluno && aluno.status_aluno) {
                 const queryDeleteEmprestimoAluno = `UPDATE emprestimo 
                                                     SET status_emprestimo_registro = FALSE
-                                                    WHERE id_aluno=${id_aluno};`;
-                await database.query(queryDeleteEmprestimoAluno);
+                                                    WHERE id_aluno=$1;`;
+
+                await database.query(queryDeleteEmprestimoAluno, [id_aluno]);
 
                 const queryDeleteAluno = `UPDATE aluno 
                                         SET status_aluno = FALSE
-                                        WHERE id_aluno=${id_aluno};`;
+                                        WHERE id_aluno=$1;`;
 
                 // Captura o resultado e usa await ao invés de .then()
-                const result = await database.query(queryDeleteAluno);
+                const result = await database.query(queryDeleteAluno, [id_aluno]);
 
                 // Retorna true ou false baseado no rowCount
                 return result.rowCount != 0;
@@ -299,16 +297,22 @@ class Aluno {
             if (alunoConsulta && alunoConsulta.status_aluno) {
                 // Construção da query SQL para atualizar os dados do aluno no banco de dados.
                 const queryAtualizarAluno = `UPDATE Aluno SET 
-                                                nome = '${aluno.getNome().toUpperCase()}', 
-                                                sobrenome = '${aluno.getSobrenome().toUpperCase()}',
-                                                data_nascimento = '${aluno.getDataNascimento()}', 
-                                                endereco = '${aluno.getEndereco().toUpperCase()}',
-                                                celular = '${aluno.getCelular()}', 
-                                                email = '${aluno.getEmail().toLowerCase()}'                                            
-                                                WHERE id_aluno = ${aluno.id_aluno}`;
+                                                    nome = '$1', 
+                                                    sobrenome = '$2',
+                                                    data_nascimento = '$3', 
+                                                    endereco = '$4',
+                                                    celular = '$5', 
+                                                    email = '$6'                                            
+                                                WHERE id_aluno = $7`;
 
                 // Executa a query de atualização e verifica se a operação foi bem-sucedida.
-                const respostaBD = await database.query(queryAtualizarAluno)
+                const respostaBD = await database.query(queryAtualizarAluno, [aluno.getNome().toUpperCase(),
+                                                                                aluno.getSobrenome().toUpperCase(),
+                                                                                aluno.getDataNascimento(),
+                                                                                aluno.getEndereco().toUpperCase(),
+                                                                                aluno.getCelular(),
+                                                                                aluno.getEmail().toLowerCase(),
+                                                                                aluno.id_aluno]);
 
                 if (respostaBD.rowCount != 0) {
                     return true;
