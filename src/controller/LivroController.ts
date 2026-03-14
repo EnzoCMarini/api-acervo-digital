@@ -1,5 +1,6 @@
 import Livro from "../model/Livro.js";
 import { type Request, type Response } from "express";
+import type LivroDTO from "../dto/LivroDTO.js";
 
 class LivroController extends Livro {
     static async todos(req: Request, res: Response) {
@@ -24,6 +25,34 @@ class LivroController extends Livro {
         }
     }
 
+    static async cadastrar(req: Request, res: Response) {
+        try {
+            const dadosRecebidos: LivroDTO = req.body;
+
+            const novoLivro = new Livro(
+                dadosRecebidos.titulo,
+                dadosRecebidos.autor,
+                dadosRecebidos.editora,
+                (dadosRecebidos.ano_publicacao ?? 0).toString(),
+                dadosRecebidos.isbn,
+                dadosRecebidos.quant_total,
+                dadosRecebidos.quant_disponivel,
+                dadosRecebidos.quant_aquisicao,
+                dadosRecebidos.valor_aquisicao ?? 0
+            );
+
+            const result = await Livro.cadastrarLivro(novoLivro);
+
+            if (result) {
+                return res.status(200).json({ mensagem: 'Livro cadastrado com sucesso.' });
+            } else {
+                return res.status(500).json({ mensagem: 'Não foi possível cadastrar o livro no banco de dados.' });
+            }
+        } catch (error) {
+            console.error(`Erro ao cadastrar o livro: ${error}`);
+            return res.status(500).json({ mensagem: 'Erro ao cadastrar o livro.' });
+        }
+    }
 }
 
 export default LivroController;
