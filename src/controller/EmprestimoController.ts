@@ -48,14 +48,16 @@ class EmprestimoController extends Emprestimo {
         try {
             const dadosRecebidos: EmprestimoDTO = req.body;
 
-            // Chama o serviço para cadastrar o empréstimo
-            const result = await Emprestimo.cadastrarEmprestimo(
+            const emprestimo = new Emprestimo(
                 dadosRecebidos.aluno.id_aluno,
                 dadosRecebidos.livro.id_livro,
                 new Date(dadosRecebidos.data_emprestimo),
-                dadosRecebidos.data_devolucao ? new Date(dadosRecebidos.data_devolucao) : new Date(),
-                dadosRecebidos.status_emprestimo ?? ""
+                dadosRecebidos.status_emprestimo ?? "",
+                dadosRecebidos.data_devolucao ? new Date(dadosRecebidos.data_devolucao) : undefined
             );
+
+            // Chama o serviço para cadastrar o empréstimo
+            const result = await Emprestimo.cadastrarEmprestimo(emprestimo);
 
             if (result) {
                 // Retorna a resposta de sucesso com o ID do novo empréstimo
