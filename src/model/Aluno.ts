@@ -305,6 +305,44 @@ class Aluno {
         }
     }
 
+    /**
+    * Atualiza os dados de um aluno no banco de dados.
+    * @param aluno Objeto do tipo Aluno com os novos dados
+    * @returns true caso sucesso, false caso erro
+    */
+    static async atualizarAluno(aluno: Aluno): Promise<boolean> {
+        try {
+            // recupera o objeto do aluno a ser atualizado
+            const alunoConsulta = await this.listarAluno(aluno.id_aluno);
+
+            if (alunoConsulta && alunoConsulta.getStatusAluno()) {
+                // Construção da query SQL para atualizar os dados do aluno no banco de dados.
+                const queryAtualizarAluno = `UPDATE Aluno SET 
+                                                nome = '${aluno.getNome().toUpperCase()}', 
+                                                sobrenome = '${aluno.getSobrenome().toUpperCase()}',
+                                                data_nascimento = '${aluno.getDataNascimento()}', 
+                                                endereco = '${aluno.getEndereco().toUpperCase()}',
+                                                celular = '${aluno.getCelular()}', 
+                                                email = '${aluno.getEmail().toLowerCase()}'                                            
+                                                WHERE id_aluno = ${aluno.id_aluno}`;
+
+                // Executa a query de atualização e verifica se a operação foi bem-sucedida.
+                const respostaBD = await database.query(queryAtualizarAluno)
+
+                if (respostaBD.rowCount != 0) {
+                    return true;
+                }
+            }
+
+            // Retorna o resultado da operação para quem chamou a função.
+            return false;
+        } catch (error) {
+            // Em caso de erro na consulta, exibe o erro no console e retorna false.
+            console.log(`Erro na consulta: ${error}`);
+            return false;
+        }
+    }
+
 }
 
 export default Aluno;
