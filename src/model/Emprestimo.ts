@@ -244,7 +244,54 @@ class Emprestimo {
         } catch (error) {
             // exibe o detalhe do erro no console
             console.error(`Erro ao cadastrar empréstimo: ${error}`);
-          
+
+            return false;
+        }
+    }
+
+    /**
+   * Atualiza os dados de um empréstimo existente no banco de dados
+   * 
+   * @param id_emprestimo : number
+   * @param id_aluno : number'
+   * @param id_livro : number
+   * @param data_emprestimo : Date
+   * @param data_devolucao : Date
+   * @param status_emprestimo : string
+   * @returns Promise com o resultado da atualização ou erro
+   */
+    static async atualizarEmprestimo(
+        id_emprestimo: number,
+        id_aluno: number,
+        id_livro: number,
+        data_emprestimo: Date,
+        data_devolucao: Date,
+        status_emprestimo: string
+    ): Promise<boolean> {
+        try {
+            // Cria a consulta (query) para atualizar um empréstimo
+            const queryUpdateEmprestimo = `UPDATE Emprestimo
+            SET id_aluno = $1, id_livro = $2, data_emprestimo = $3, data_devolucao = $4, status_emprestimo = $5
+            WHERE id_emprestimo = $6
+            RETURNING id_emprestimo;`;
+
+            // estrutura os valores recebidos pela função em uma lista (array)
+            const valores = [id_aluno, id_livro, data_emprestimo, data_devolucao, status_emprestimo, id_emprestimo];
+            // executa a consulta e armazena o resultado
+            const resultado = await database.query(queryUpdateEmprestimo, valores);
+
+            // verifica se o empréstimo não existe
+            if (resultado.rowCount === 0) {
+                // lança um novo erro
+                throw new Error('Empréstimo não encontrado.');
+            }
+
+            return true;
+            // captura qualquer erro que possa acontecer
+        } catch (error) {
+            // exibe detalhes do erro no console
+            console.error(`Erro ao atualizar empréstimo: ${error}`);
+            // lança um novo erro
             return false;
         }
     }
