@@ -125,7 +125,7 @@ class Livro {
     public setStatusLivro(value: boolean) {
         this.status_livro = value;
     }
- 
+
     /**
      * Retorna uma lista com todos os livros cadastrados no banco de dados
      * 
@@ -176,6 +176,39 @@ class Livro {
         }
     }
 
+    /**
+     * Retorna as informações de um livro informado pelo ID
+     * 
+     * @param idLivro Identificador único do livro
+     * @returns Objeto com informações do livro
+     */
+    static async listarLivro(idLivro: number): Promise<LivroDTO | null> {
+        try {
+            const querySelectLivro = `SELECT * FROM livro WHERE id_livro = ${idLivro}`;
+
+            const respostaBD = await database.query(querySelectLivro);
+
+            const livroDTO: LivroDTO = {
+                id_livro: respostaBD.rows[0].id_livro,
+                titulo: respostaBD.rows[0].titulo,
+                autor: respostaBD.rows[0].autor,
+                editora: respostaBD.rows[0].editora,
+                ano_publicacao: respostaBD.rows[0].ano_publicacao,
+                isbn: respostaBD.rows[0].isbn,
+                quant_total: respostaBD.rows[0].quant_total,
+                quant_disponivel: respostaBD.rows[0].quant_disponivel,
+                quant_aquisicao: respostaBD.rows[0].quant_aquisicao,
+                valor_aquisicao: respostaBD.rows[0].valor_aquisicao,
+                status_livro_emprestado: respostaBD.rows[0].status_livro_emprestado,
+                status_livro: respostaBD.rows[0].status_livro
+            };
+
+            return livroDTO;
+        } catch (error) {
+            console.error(`Erro ao realizar consulta. ${error}`);
+            return null;
+        }
+    }
 }
 
 export default Livro;
