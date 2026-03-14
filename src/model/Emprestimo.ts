@@ -210,13 +210,7 @@ class Emprestimo {
      * @param status_emprestimo : string
      * @returns Promise com o resultado da inserção ou erro
      */
-    static async cadastrarEmprestimo(
-        id_aluno: number,
-        id_livro: number,
-        data_emprestimo: Date,
-        data_devolucao: Date,
-        status_emprestimo: string
-    ): Promise<boolean> {
+    static async cadastrarEmprestimo(emprestimo: Emprestimo): Promise<boolean> {
         try {
             // Cria a consulta (query) para inserir um empréstimo na tabela retornando o ID do empréstimo criado
             const queryInsertEmprestimo = `
@@ -225,7 +219,7 @@ class Emprestimo {
             `;
 
             // estrutura os valores recebidos pela função em uma lista (array)
-            const valores = [id_aluno, id_livro, data_emprestimo, data_devolucao, status_emprestimo];
+            const valores = [emprestimo.id_aluno, emprestimo.id_livro, emprestimo.data_emprestimo, emprestimo.data_devolucao, emprestimo.status_emprestimo];
             // realizada a consulta no banco de dados e armazena o resultado
             const resultado = await database.query(queryInsertEmprestimo, valores);
 
