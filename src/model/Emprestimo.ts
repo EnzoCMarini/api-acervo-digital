@@ -198,50 +198,58 @@ class Emprestimo {
         try {
             // Query SQL com JOIN igual ao listarEmprestimos, mas filtrando por um ID específico
             // O "$1" é o placeholder que será substituído pelo valor de id_emprestimo (proteção contra SQL Injection)
-            const querySelectEmprestimo = `SELECT e.id_emprestimo, e.id_aluno, e.id_livro,
+            const querySelectEmprestimo = `
+                SELECT e.id_emprestimo, e.id_aluno, e.id_livro,
                        e.data_emprestimo, e.data_devolucao, e.status_emprestimo, e.status_emprestimo_registro,
                        a.ra, a.nome, a.sobrenome, a.celular, a.email,
                        l.titulo, l.autor, l.editora, l.isbn
                 FROM Emprestimo e
                 JOIN Aluno a ON e.id_aluno = a.id_aluno
                 JOIN Livro l ON e.id_livro = l.id_livro
-                WHERE e.id_emprestimo = $1;`;
-
+                WHERE e.id_emprestimo = $1;
+            `;
+    
             // Executa a query passando o id_emprestimo como parâmetro (substitui o $1)
             const respostaBD = await database.query(querySelectEmprestimo, [id_emprestimo]);
-
-            // Monta o objeto EmprestimoDTO com os dados da primeira (e única) linha retornada
-            // rows[0] acessa a primeira linha do resultado
+    
+            // Se nenhuma linha foi retornada, o empréstimo não existe — retorna null imediatamente
+            // Isso evita um erro de runtime ao tentar acessar rows[0] em um array vazio
+            if (respostaBD.rows.length === 0) return null;
+    
+            // Desestrutura a primeira (e única) linha para facilitar a leitura
+            const linha = respostaBD.rows[0];
+    
+            // Monta e retorna o objeto EmprestimoDTO com os dados do banco
             const emprestimoDTO: EmprestimoDTO = {
-                id_emprestimo: respostaBD.rows[0].id_emprestimo,
-                data_emprestimo: respostaBD.rows[0].data_emprestimo,
-                data_devolucao: respostaBD.rows[0].data_devolucao,
-                status_emprestimo: respostaBD.rows[0].status_emprestimo,
-                status_emprestimo_registro: respostaBD.rows[0].status_emprestimo_registro,
+                id_emprestimo:              linha.id_emprestimo,
+                data_emprestimo:            linha.data_emprestimo,
+                data_devolucao:             linha.data_devolucao,
+                status_emprestimo:          linha.status_emprestimo,
+                status_emprestimo_registro: linha.status_emprestimo_registro,
                 // Objeto aninhado com dados do aluno
                 aluno: {
-                    id_aluno: respostaBD.rows[0].id_aluno,
-                    ra: respostaBD.rows[0].ra,
-                    nome: respostaBD.rows[0].nome,
-                    sobrenome: respostaBD.rows[0].sobrenome,
-                    celular: respostaBD.rows[0].celular,
-                    email: respostaBD.rows[0].email
+                    id_aluno:  linha.id_aluno,
+                    ra:        linha.ra,
+                    nome:      linha.nome,
+                    sobrenome: linha.sobrenome,
+                    celular:   linha.celular,
+                    email:     linha.email
                 },
                 // Objeto aninhado com dados do livro
                 livro: {
-                    id_livro: respostaBD.rows[0].id_livro,
-                    titulo: respostaBD.rows[0].titulo,
-                    autor: respostaBD.rows[0].autor,
-                    editora: respostaBD.rows[0].editora,
-                    isbn: respostaBD.rows[0].isbn
+                    id_livro: linha.id_livro,
+                    titulo:   linha.titulo,
+                    autor:    linha.autor,
+                    editora:  linha.editora,
+                    isbn:     linha.isbn
                 }
             };
-
-            // Retorna o objeto empréstimo montado com os dados do banco
+    
             return emprestimoDTO;
+    
         } catch (error) {
-            // Exibe o erro no console e retorna null em caso de falha
-            console.error(`Erro ao realizar consulta: ${error}`);
+            // Exibe o erro no fluxo correto (stderr) e retorna null em caso de falha
+            console.error(`Erro ao buscar empréstimo: ${error}`);
             return null;
         }
     }
