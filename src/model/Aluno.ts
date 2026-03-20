@@ -305,42 +305,39 @@ class Aluno {
     // Recebe o ID do aluno e realiza uma "remoção lógica" (não apaga do banco, apenas desativa)
     static async removerAluno(id_aluno: number): Promise<boolean> {
         try {
-            // Busca o aluno no banco antes de tentar remover, para verificar se ele existe e está ativo
+            // Busca o aluno antes de remover para verificar se ele existe e está ativo
             const aluno: AlunoDTO | null = await this.listarAluno(id_aluno);
-
-            // Só prossegue se o aluno existir (não for null) E estiver com status ativo (true)
-            if (aluno && aluno.status_aluno) {
-                // Query que desativa todos os empréstimos relacionados ao aluno
-                // Em vez de apagar, usa UPDATE para setar o status como FALSE (remoção lógica)
-                const queryDeleteEmprestimoAluno = `UPDATE emprestimo 
-                                                    SET status_emprestimo_registro = FALSE
-                                                    WHERE id_aluno=$1;`;
-
-                // Executa a desativação dos empréstimos do aluno
-                await database.query(queryDeleteEmprestimoAluno, [id_aluno]);
-
-                // Query que desativa o próprio aluno (também uma remoção lógica)
-                const queryDeleteAluno = `UPDATE aluno 
-                                        SET status_aluno = FALSE
-                                        WHERE id_aluno=$1;`;
-
-                // Executa a desativação do aluno e armazena o resultado
-                const result = await database.query(queryDeleteAluno, [id_aluno]);
-
-                // "rowCount" indica quantas linhas foram afetadas pelo UPDATE
-                // Se for diferente de 0, significa que o aluno foi desativado com sucesso
-                return true;
-            }
-
-            // Se o aluno não existir ou já estiver inativo, retorna false
-            return false;
-
+    
+            // Se o aluno não existir ou já estiver inativo, encerra antecipadamente
+            if (!aluno || !aluno.status_aluno) return false;
+    
+            // Desativa todos os empréstimos vinculados ao aluno (remoção lógica)
+            // Remoção lógica: em vez de deletar, marca o registro como inativo (FALSE)
+            const queryDesativarEmprestimos = `
+                UPDATE Emprestimo
+                SET status_emprestimo_registro = FALSE
+                WHERE id_aluno = $1;
+            `;
+            await database.query(queryDesativarEmprestimos, [id_aluno]);
+    
+            // Desativa o próprio aluno (remoção lógica)
+            const queryDesativarAluno = `
+                UPDATE Aluno
+                SET status_aluno = FALSE
+                WHERE id_aluno = $1;
+            `;
+            const respostaBD = await database.query(queryDesativarAluno, [id_aluno]);
+    
+            // rowCount > 0 confirma que o UPDATE afetou ao menos uma linha
+            return (respostaBD.rowCount ?? 0) > 0;
+    
         } catch (error) {
-            // Exibe o erro no console e retorna false em caso de falha
-            console.log(`Erro na consulta: ${error}`);
+            // Exibe o erro no fluxo correto (stderr) e retorna false para indicar falha
+            console.error(`Erro ao remover aluno: ${error}`);
             return false;
         }
     }
+
 
     /**
     * Atualiza os dados de um aluno no banco de dados.
