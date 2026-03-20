@@ -127,9 +127,6 @@ class Emprestimo {
     */
     // Método assíncrono que busca todos os empréstimos ativos e retorna uma lista de EmprestimoDTO ou null
     static async listarEmprestimos(): Promise<Array<EmprestimoDTO> | null> {
-        // Cria uma lista vazia que vai receber os empréstimos encontrados no banco
-        let listaDeEmprestimos: Array<EmprestimoDTO> = [];
-
         try {
             // Query SQL com JOIN: une três tabelas (Emprestimo, Aluno e Livro) em uma única consulta
             // Isso evita múltiplas consultas ao banco — traz os dados de aluno e livro juntos com o empréstimo
@@ -151,51 +148,41 @@ class Emprestimo {
             const respostaBD = await database.query(querySelectEmprestimo);
 
             // Se o banco não retornou nenhuma linha, não há empréstimos — retorna null
-            if (respostaBD.rows.length === 0) {
-                return null;
-            }
+            if (respostaBD.rows.length === 0) return null;
 
-            // Percorre cada linha retornada pelo banco de dados
-            // "linha" é o apelido dado a cada registro individual retornado
-            respostaBD.rows.forEach((linha: any) => {
-                // Monta o objeto EmprestimoDTO com os dados da linha atual
-                // Repare que o EmprestimoDTO tem objetos aninhados: "aluno" e "livro" dentro do empréstimo
-                const emprestimoDTO: EmprestimoDTO = {
-                    id_emprestimo: linha.id_emprestimo,                       // ID do empréstimo
-                    data_emprestimo: linha.data_emprestimo,                   // Data do empréstimo
-                    data_devolucao: linha.data_devolucao,                     // Data de devolução
-                    status_emprestimo: linha.status_emprestimo,               // Status do empréstimo
-                    status_emprestimo_registro: linha.status_emprestimo_registro, // Status do registro
-                    // Objeto aninhado com os dados do aluno relacionado ao empréstimo
-                    aluno: {
-                        id_aluno: linha.id_aluno,       // ID do aluno
-                        ra: linha.ra,                   // Registro Acadêmico
-                        nome: linha.nome,               // Nome do aluno
-                        sobrenome: linha.sobrenome,     // Sobrenome do aluno
-                        celular: linha.celular,         // Celular do aluno
-                        email: linha.email              // E-mail do aluno
-                    },
-                    // Objeto aninhado com os dados do livro relacionado ao empréstimo
-                    livro: {
-                        id_livro: linha.id_livro,  // ID do livro
-                        titulo: linha.titulo,      // Título do livro
-                        autor: linha.autor,        // Autor do livro
-                        editora: linha.editora,    // Editora do livro
-                        isbn: linha.isbn           // ISBN do livro
-                    }
-                };
-
-                // Adiciona o objeto EmprestimoDTO montado à lista de empréstimos
-                listaDeEmprestimos.push(emprestimoDTO);
-            });
+            // .map() transforma cada linha retornada em um objeto EmprestimoDTO
+            // Repare que o EmprestimoDTO tem objetos aninhados: "aluno" e "livro" dentro do empréstimo
+            const listaDeEmprestimos: Array<EmprestimoDTO> = respostaBD.rows.map((linha) => ({
+                id_emprestimo: linha.id_emprestimo,
+                data_emprestimo: linha.data_emprestimo,
+                data_devolucao: linha.data_devolucao,
+                status_emprestimo: linha.status_emprestimo,
+                status_emprestimo_registro: linha.status_emprestimo_registro,
+                // Objeto aninhado com os dados do aluno relacionado ao empréstimo
+                aluno: {
+                    id_aluno: linha.id_aluno,
+                    ra: linha.ra,
+                    nome: linha.nome,
+                    sobrenome: linha.sobrenome,
+                    celular: linha.celular,
+                    email: linha.email
+                },
+                // Objeto aninhado com os dados do livro relacionado ao empréstimo
+                livro: {
+                    id_livro: linha.id_livro,
+                    titulo: linha.titulo,
+                    autor: linha.autor,
+                    editora: linha.editora,
+                    isbn: linha.isbn
+                }
+            }));
 
             // Retorna a lista completa de empréstimos encontrados
             return listaDeEmprestimos;
 
         } catch (error) {
-            // Se ocorrer qualquer erro durante a consulta, exibe no console para facilitar o debug
-            console.log(`Erro ao acessar o modelo: ${error}`);
-            // Retorna null para indicar que houve falha
+            // Exibe o erro no fluxo correto (stderr) e retorna null para indicar falha
+            console.error(`Erro ao listar empréstimos: ${error}`);
             return null;
         }
     }
