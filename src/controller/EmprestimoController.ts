@@ -18,16 +18,11 @@ class EmprestimoController extends Emprestimo {
     // "Promise<Response>" indica que este método sempre retorna uma resposta HTTP ao final
     static async todos(req: Request, res: Response): Promise<Response> {
         try {
-            // Chama o método do model para buscar todos os empréstimos ativos no banco
-            // O resultado já vem com os dados de aluno e livro embutidos (graças ao JOIN da query)
+            // Busca todos os empréstimos ativos (já com dados de aluno e livro via JOIN)
             const listaDeEmprestimos = await Emprestimo.listarEmprestimos();
-
-            // Retorna a lista em formato JSON com status HTTP 200 (OK — requisição bem-sucedida)
             return res.status(200).json(listaDeEmprestimos);
         } catch (error) {
-            // Exibe os detalhes do erro no console do servidor para facilitar o debug
-            console.error('Erro ao listar empréstimos:', error);
-            // Retorna mensagem de erro com status HTTP 500 (Internal Server Error)
+            console.error(`Erro ao listar empréstimos: ${error}`);
             return res.status(500).json({ mensagem: 'Erro ao listar os empréstimos.' });
         }
     }
