@@ -102,23 +102,20 @@ class AlunoController extends Aluno {
     static async remover(req: Request, res: Response): Promise<Response> {
         try {
             // Lê o parâmetro "id" da URL e converte para número inteiro
-            // Exemplo de URL: DELETE /aluno/3  →  idAluno = 3
             const idAluno = parseInt(req.params.id as string);
-
-            // Chama o método do model para remover (logicamente) o aluno com o ID informado
+    
+            // Remove logicamente o aluno com o ID informado e verifica o resultado
             const result = await Aluno.removerAluno(idAluno);
-
+    
             if (result) {
-                // Retorna mensagem de sucesso com status HTTP 201 se a remoção funcionou
-                // ⚠️ Observação: o ideal aqui seria status 200 (OK), pois 201 é para criação de recursos
-                return res.status(201).json({ mensagem: 'Aluno removido com sucesso.' });
+                // Status 200 (OK) — remoção bem-sucedida
+                return res.status(200).json({ mensagem: 'Aluno removido com sucesso.' });
             } else {
-                // Retorna status HTTP 404 (Not Found) se o aluno não foi encontrado ou já estava inativo
+                // Status 404 (Not Found) — aluno não encontrado ou já inativo
                 return res.status(404).json({ mensagem: 'Aluno não encontrado para exclusão.' });
             }
         } catch (error) {
-            // Exibe o erro no console e retorna status HTTP 500 em caso de exceção
-            console.log(`Erro ao remover aluno: ${error}`)
+            console.error(`Erro ao remover aluno: ${error}`);
             return res.status(500).json({ mensagem: 'Erro ao remover aluno.' });
         }
     }
