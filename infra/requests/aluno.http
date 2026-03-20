@@ -1,33 +1,33 @@
 GET http://localhost:3333/api/alunos
 
 ###
-GET http://localhost:3333/api/alunos/21
+GET http://localhost:3333/api/alunos/22
 
 ###
 POST http://localhost:3333/api/alunos
 Content-Type: application/json
 
 {
-  "nome": "Joselito",
-  "sobrenome": "Santos",
-  "data_nascimento": "2003-07-10T03:00:00.000Z",
-  "endereco": "Rua do Ingá, 811",
-  "email": "joselito@semnocao.com",
-  "celular": "16991915545"
+  "nome": "Enzo",
+  "sobrenome": "Cassão",
+  "data_nascimento": "2009-06-10T12:00:00.000Z",
+  "endereco": "Rua do Bababapow, 911",
+  "email": "enzocassao@gmail.com",
+  "celular": "16991916745"
 }
 
 ###
-PUT http://localhost:3333/api/alunos/21
+PUT http://localhost:3333/api/alunos/22
 Content-Type: application/json
 
 {
-  "nome": "Joselito",
-  "sobrenome": "Freitas",
-  "data_nascimento": "2003-07-10T03:00:00.000Z",
-  "endereco": "Rua do Ingá, 811",
-  "email": "joselito@semnocao.com",
-  "celular": "16991915545"
+  "nome": "Enzo",
+  "sobrenome": "Marini",
+  "data_nascimento": "2009-06-10T12:00:00.000Z",
+  "endereco": "Rua do Bababapow, 911",
+  "email": "enzocassao@gmail.com",
+  "celular": "16991916745"
 }
 
 ###
-DELETE http://localhost:3333/api/alunos/13
+DELETE http://localhost:3333/api/alunos/22
