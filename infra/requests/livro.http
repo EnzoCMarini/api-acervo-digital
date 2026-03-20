@@ -1,21 +1,21 @@
 GET http://localhost:3333/api/livros
 
 ###
-GET http://localhost:3333/api/livros/21
+GET http://localhost:3333/api/livros/22
 
 ###
 POST http://localhost:3333/api/livros
 Content-Type: application/json
 
 {
-    "titulo": "O Senhor dos Anéis: O Retorno do Rei",
-    "autor": "J.R.R. Tolkien",
+    "titulo": "O Morro dos Ventos Uivantes",
+    "autor": "Emily Brontë",
     "editora": "HarperCollins",
-    "ano_publicacao": "1954",
-    "isbn": "978-0007525599",
+    "ano_publicacao": "1837",
+    "isbn": "978-8594318237",
     "quant_total": 10,
     "quant_disponivel": 10,
-    "valor_aquisicao": "150.00"
+    "valor_aquisicao": "75.00"
 }
 
 ###
@@ -23,14 +23,14 @@ PUT http://localhost:3333/api/livros/21
 Content-Type: application/json
 
 {
-    "titulo": "O Senhor dos Anéis: As Duas Torres",
-    "autor": "J.R.R. Tolkien",
+    "titulo": "O Morro dos Ventos Uivantes",
+    "autor": "Emily Brontë",
     "editora": "HarperCollins",
-    "ano_publicacao": "1954",
-    "isbn": "978-0007525599",
+    "ano_publicacao": "1847",
+    "isbn": "978-8594318237",
     "quant_total": 10,
     "quant_disponivel": 10,
-    "valor_aquisicao": "150.00"
+    "valor_aquisicao": "75.00"
 }
 
 ###
