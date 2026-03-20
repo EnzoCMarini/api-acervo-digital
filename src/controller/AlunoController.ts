@@ -20,14 +20,13 @@ class AlunoController extends Aluno {
     // Método estático e assíncrono — recebe a requisição HTTP e devolve a resposta com todos os alunos
     static async todos(req: Request, res: Response) {
         try {
-            // Chama o método herdado do model Aluno para buscar todos os alunos ativos no banco
+            // Busca todos os alunos ativos no banco
             const listaDeAlunos = await Aluno.listarAlunos();
-            // Retorna a lista em formato JSON com status HTTP 200 (OK — requisição bem-sucedida)
+            // Retorna a lista com status 200 (OK)
             res.status(200).json(listaDeAlunos);
         } catch (error) {
-            // Se ocorrer qualquer erro, exibe os detalhes no console do servidor para facilitar o debug
-            console.log(`Erro ao acessar método herdado: ${error}`);
-            // Retorna uma mensagem de erro em JSON com status HTTP 500 (Internal Server Error)
+            // Exibe o erro no servidor e retorna status 500 (Internal Server Error)
+            console.error(`Erro ao listar alunos: ${error}`);
             res.status(500).json("Erro ao recuperar as informações do aluno.");
         }
     }
