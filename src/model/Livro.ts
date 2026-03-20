@@ -277,38 +277,39 @@ class Livro {
             const queryInsertLivro = `
                 INSERT INTO Livro (titulo, autor, editora, ano_publicacao, isbn, quant_total, quant_disponivel, valor_aquisicao, status_livro_emprestado)
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-                RETURNING id_livro;`;
-
+                RETURNING id_livro;
+            `;
+    
             // Organiza os valores em um array na mesma ordem dos placeholders da query
             // Textos são convertidos para maiúsculas (.toUpperCase()) para padronizar o banco
             const valores = [
-                livro.getTitulo().toUpperCase(),              // $1 — Título em maiúsculas
-                livro.getAutor().toUpperCase(),               // $2 — Autor em maiúsculas
-                livro.getEditora().toUpperCase(),             // $3 — Editora em maiúsculas
-                livro.getAnoPublicacao().toUpperCase(),       // $4 — Ano de publicação em maiúsculas
-                livro.getIsbn().toUpperCase(),                // $5 — ISBN em maiúsculas
-                livro.getQuantTotal(),                        // $6 — Quantidade total (número, sem transformação)
-                livro.getQuantDisponivel(),                   // $7 — Quantidade disponível (número)
-                livro.getValorAquisicao(),                    // $8 — Valor de aquisição (número)
+                livro.getTitulo().toUpperCase(),               // $1 — Título em maiúsculas
+                livro.getAutor().toUpperCase(),                // $2 — Autor em maiúsculas
+                livro.getEditora().toUpperCase(),              // $3 — Editora em maiúsculas
+                livro.getAnoPublicacao().toUpperCase(),        // $4 — Ano de publicação em maiúsculas
+                livro.getIsbn().toUpperCase(),                 // $5 — ISBN em maiúsculas
+                livro.getQuantTotal(),                         // $6 — Quantidade total (número, sem transformação)
+                livro.getQuantDisponivel(),                    // $7 — Quantidade disponível (número)
+                livro.getValorAquisicao(),                     // $8 — Valor de aquisição (número)
                 livro.getStatusLivroEmprestado().toUpperCase() // $9 — Status em maiúsculas
             ];
-
+    
             // Executa a query passando o array de valores e armazena o resultado
-            const result = await database.query(queryInsertLivro, valores);
-
+            const respostaBD = await database.query(queryInsertLivro, valores);
+    
             // Verifica se o banco retornou pelo menos uma linha (ou seja, o INSERT funcionou)
-            if (result.rows.length > 0) {
+            if (respostaBD.rows.length > 0) {
                 // Exibe no console o ID do livro recém-cadastrado
-                console.log(`Livro cadastrado com sucesso. ID: ${result.rows[0].id_livro}`);
+                console.log(`Livro cadastrado com sucesso. ID: ${respostaBD.rows[0].id_livro}`);
                 // Retorna true para indicar sucesso
                 return true;
             }
-
+    
             // Se nenhuma linha foi retornada, o cadastro não funcionou — retorna false
             return false;
-
+    
         } catch (error) {
-            // Exibe o erro no console e retorna false em caso de exceção
+            // Exibe o erro no fluxo correto (stderr) e retorna false em caso de exceção
             console.error(`Erro ao cadastrar livro: ${error}`);
             return false;
         }
