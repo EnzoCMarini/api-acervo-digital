@@ -366,27 +366,29 @@ class Emprestimo {
         try {
             // Query de remoção lógica — usa UPDATE para desativar o registro em vez de DELETE
             // Isso preserva o histórico de empréstimos no banco de dados
-            const queryDeleteEmprestimo = `UPDATE emprestimo 
-                                            SET status_emprestimo_registro = FALSE
-                                            WHERE id_emprestimo=$1`;
-
+            const queryDesativarEmprestimo = `
+                UPDATE Emprestimo
+                SET status_emprestimo_registro = FALSE
+                WHERE id_emprestimo = $1;
+            `;
+    
             // Executa a query passando o ID do empréstimo como parâmetro (substitui o $1)
-            const respostaBD = await database.query(queryDeleteEmprestimo, [id_emprestimo]);
-
-            // Verifica se pelo menos uma linha foi afetada pelo UPDATE
-            if (respostaBD.rowCount != 0) {
+            const respostaBD = await database.query(queryDesativarEmprestimo, [id_emprestimo]);
+    
+            // rowCount > 0 confirma que ao menos uma linha foi afetada pelo UPDATE
+            if ((respostaBD.rowCount ?? 0) > 0) {
                 // Exibe mensagem de sucesso no console
                 console.log('Empréstimo removido com sucesso!');
                 // Retorna true para indicar que a remoção foi bem-sucedida
                 return true;
             }
-
+    
             // Se rowCount for 0, nenhum registro foi encontrado com esse ID — retorna false
             return false;
-
+    
         } catch (error) {
-            // Exibe o erro no console e retorna false em caso de falha
-            console.log(`Erro ao remover empréstimo: ${error}`);
+            // Exibe o erro no fluxo correto (stderr) e retorna false em caso de falha
+            console.error(`Erro ao remover empréstimo: ${error}`);
             return false;
         }
     }
