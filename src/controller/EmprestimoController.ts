@@ -131,25 +131,20 @@ class EmprestimoController extends Emprestimo {
     static async remover(req: Request, res: Response): Promise<Response> {
         try {
             // Lê o parâmetro "id" da URL e converte para número inteiro
-            // Exemplo de URL: DELETE /emprestimo/2  →  idEmprestimo = 2
             const idEmprestimo = parseInt(req.params.id as string);
-            // Chama o método do model para remover (logicamente) o empréstimo com o ID informado
-            // O resultado é um booleano: true = removido com sucesso, false = não encontrado ou já inativo
+    
+            // Remove logicamente o empréstimo com o ID informado e verifica o resultado
             const resultado = await Emprestimo.removerEmprestimo(idEmprestimo);
-
-            // Verifica se a remoção foi bem-sucedida
+    
             if (resultado) {
-                // Retorna mensagem de sucesso com status HTTP 200 (OK)
+                // Status 200 (OK) — remoção bem-sucedida
                 return res.status(200).json({ mensagem: 'Empréstimo removido com sucesso!' });
             } else {
-                // Retorna mensagem de erro com status HTTP 500 se não foi possível remover
-                return res.status(500).json({ mensagem: 'Erro ao remover empréstimo!' });
+                // Status 404 (Not Found) — empréstimo não encontrado ou já inativo
+                return res.status(404).json({ mensagem: 'Empréstimo não encontrado para exclusão.' });
             }
-
         } catch (error) {
-            // Exibe os detalhes do erro no console do servidor
-            console.log(`Erro ao remover o Empréstimo ${error}`);
-            // Retorna mensagem de erro com status HTTP 500 em caso de exceção inesperada
+            console.error(`Erro ao remover empréstimo: ${error}`);
             return res.status(500).json({ mensagem: "Erro ao remover empréstimo." });
         }
     }
