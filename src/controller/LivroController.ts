@@ -14,14 +14,11 @@ class LivroController extends Livro {
     // ⚠️ Diferença dos outros controllers: este método não tem JSDoc (comentário de documentação acima dele)
     static async todos(req: Request, res: Response) {
         try {
-            // Chama o método do model para buscar todos os livros com status ativo no banco
+            // Busca todos os livros ativos no banco
             const listaDeLivros = await Livro.listarLivros();
-            // Retorna a lista em formato JSON com status HTTP 200 (OK — requisição bem-sucedida)
             return res.status(200).json(listaDeLivros);
         } catch (error) {
-            // Exibe os detalhes do erro no console do servidor para facilitar o debug
             console.error(`Erro ao listar livros: ${error}`);
-            // Retorna mensagem de erro com status HTTP 500 (Internal Server Error)
             return res.status(500).json({ mensagem: "Erro ao recuperar as informações dos livros." });
         }
     }
