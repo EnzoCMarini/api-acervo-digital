@@ -169,48 +169,43 @@ class Livro {
      */
     // Método assíncrono que busca todos os livros ativos e retorna uma lista de LivroDTO ou null
     static async listarLivros(): Promise<Array<LivroDTO> | null> {
-        // Cria uma lista vazia que vai receber os livros encontrados no banco
-        let listaDeLivros: Array<LivroDTO> = [];
-
         try {
-            // Query SQL que busca todos os livros com status ativo (status_livro = TRUE)
+            // Query com colunas explícitas em vez de SELECT * — mais seguro e eficiente
             // Livros com status FALSE foram removidos logicamente e não devem aparecer
-            const querySelectLivro = `SELECT * FROM Livro WHERE status_livro = TRUE;`;
+            const querySelectLivro = `
+                SELECT id_livro, titulo, autor, editora, ano_publicacao, isbn,
+                       quant_total, quant_disponivel,
+                       valor_aquisicao, status_livro_emprestado, status_livro
+                FROM Livro
+                WHERE status_livro = TRUE;
+            `;
 
-            // Executa a query no banco de dados e aguarda o resultado
+            // Executa a query e aguarda o resultado do banco
             const respostaBD = await database.query(querySelectLivro);
 
-            // Percorre cada linha retornada pelo banco de dados
-            // "livro" é o apelido dado a cada registro individual retornado
-            respostaBD.rows.forEach((livro) => {
-                // Monta o objeto LivroDTO com os dados da linha atual
-                // LivroDTO é um objeto simples de dados (sem métodos), diferente da classe Livro
-                const livroDTO: LivroDTO = {
-                    id_livro: livro.id_livro,                           // ID do livro
-                    titulo: livro.titulo,                               // Título
-                    autor: livro.autor,                                 // Autor
-                    editora: livro.editora,                             // Editora
-                    ano_publicacao: livro.ano_publicacao,               // Ano de publicação
-                    isbn: livro.isbn,                                   // ISBN
-                    quant_total: livro.quant_total,                     // Quantidade total
-                    quant_disponivel: livro.quant_disponivel,           // Quantidade disponível
-                    quant_aquisicao: livro.quant_aquisicao,             // Quantidade de aquisição
-                    valor_aquisicao: livro.valor_aquisicao,             // Valor de aquisição
-                    status_livro_emprestado: livro.status_livro_emprestado, // Status de empréstimo
-                    status_livro: livro.status_livro                    // Status ativo/inativo
-                };
+            // .map() transforma cada linha retornada em um objeto LivroDTO
+            // LivroDTO é um objeto simples de dados (sem métodos), diferente da classe Livro
+            const listaDeLivros: Array<LivroDTO> = respostaBD.rows.map((livro) => ({
+                id_livro: livro.id_livro,
+                titulo: livro.titulo,
+                autor: livro.autor,
+                editora: livro.editora,
+                ano_publicacao: livro.ano_publicacao,
+                isbn: livro.isbn,
+                quant_total: livro.quant_total,
+                quant_disponivel: livro.quant_disponivel,
+                quant_aquisicao: livro.quant_aquisicao,
+                valor_aquisicao: livro.valor_aquisicao,
+                status_livro_emprestado: livro.status_livro_emprestado,
+                status_livro: livro.status_livro
+            }));
 
-                // Adiciona o objeto LivroDTO à lista
-                listaDeLivros.push(livroDTO);
-            });
-
-            // Retorna a lista com todos os livros encontrados
+            // Retorna a lista de livros (pode ser array vazio se nenhum for encontrado)
             return listaDeLivros;
 
         } catch (error) {
-            // Se ocorrer qualquer erro durante a consulta, exibe no console para facilitar o debug
-            console.log(`Erro ao acessar o modelo: ${error}`);
-            // Retorna null para indicar que houve falha
+            // Exibe o erro no fluxo correto (stderr) e retorna null para indicar falha
+            console.error(`Erro ao listar livros: ${error}`);
             return null;
         }
     }
