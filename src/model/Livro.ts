@@ -325,36 +325,37 @@ class Livro {
         try {
             // Busca o livro no banco antes de tentar remover, para verificar se ele existe e está ativo
             const livro: LivroDTO | null = await this.listarLivro(id_livro);
-
-            // Só prossegue se o livro existir (não for null) E estiver com status ativo (true)
-            if (livro && livro.status_livro) {
-                // Primeiro desativa todos os empréstimos relacionados a este livro
-                // Isso garante a consistência dos dados — um livro removido não pode ter empréstimos ativos
-                const queryDeleteEmprestimoLivro = `UPDATE emprestimo
-                                    SET status_emprestimo_registro = FALSE 
-                                    WHERE id_livro = $1`;
-
-                // Executa a desativação dos empréstimos do livro (não precisa verificar o resultado aqui)
-                await database.query(queryDeleteEmprestimoLivro, [id_livro]);
-
-                // Agora desativa o próprio livro (remoção lógica — não apaga, apenas muda o status)
-                const queryDeleteLivro = `UPDATE livro
-                          SET status_livro = FALSE 
-                          WHERE id_livro = $1`;
-
-                // Executa a desativação do livro e armazena o resultado
-                const result = await database.query(queryDeleteLivro, [id_livro]);
-
-                // "rowCount" indica quantas linhas foram afetadas pelo UPDATE
-                // Retorna true se pelo menos uma linha foi alterada, false caso contrário
-                return result.rowCount != 0;
-            }
-
-            // Se o livro não existir ou já estiver inativo, retorna false
-            return false;
+    
+            // Se o livro não existir ou já estiver inativo, encerra antecipadamente
+            if (!livro || !livro.status_livro) return false;
+    
+            // Primeiro desativa todos os empréstimos relacionados a este livro
+            // Isso garante a consistência dos dados — um livro removido não pode ter empréstimos ativos
+            const queryDesativarEmprestimos = `
+                UPDATE Emprestimo
+                SET status_emprestimo_registro = FALSE
+                WHERE id_livro = $1;
+            `;
+    
+            // Executa a desativação dos empréstimos do livro (não precisa verificar o resultado aqui)
+            await database.query(queryDesativarEmprestimos, [id_livro]);
+    
+            // Agora desativa o próprio livro (remoção lógica — não apaga, apenas muda o status)
+            const queryDesativarLivro = `
+                UPDATE Livro
+                SET status_livro = FALSE
+                WHERE id_livro = $1;
+            `;
+    
+            // Executa a desativação do livro e armazena o resultado
+            const respostaBD = await database.query(queryDesativarLivro, [id_livro]);
+    
+            // rowCount > 0 confirma que ao menos uma linha foi afetada pelo UPDATE
+            return (respostaBD.rowCount ?? 0) > 0;
+    
         } catch (error) {
-            // Exibe o erro no console e retorna false em caso de falha
-            console.log(`Erro na consulta: ${error}`);
+            // Exibe o erro no fluxo correto (stderr) e retorna false em caso de falha
+            console.error(`Erro ao remover livro: ${error}`);
             return false;
         }
     }
