@@ -36,20 +36,15 @@ class EmprestimoController extends Emprestimo {
     // Método que busca um único empréstimo com base no ID informado na URL (ex: GET /emprestimo/5)
     static async emprestimo(req: Request, res: Response) {
         try {
-            // Lê o parâmetro "id" da URL, converte de string para número inteiro e já tipifica como number
-            // O "as string" garante ao TypeScript que o valor existe e é uma string antes do parseInt
+            // Lê o parâmetro "id" da URL e converte para número inteiro
             const idEmprestimo: number = parseInt(req.params.id as string);
-
-            // Chama o método do model passando o ID para buscar o empréstimo específico no banco
+    
+            // Busca o empréstimo pelo ID e retorna com status 200 (OK)
             const emprestimo = await Emprestimo.listarEmprestimo(idEmprestimo);
-            // Retorna o objeto do empréstimo em JSON com status HTTP 200 (OK)
             res.status(200).json(emprestimo);
         } catch (error) {
-            // Exibe o erro no console do servidor
-            console.log(`Erro ao acessar método herdado: ${error}`);
-            // Retorna mensagem de erro com status HTTP 500
-            // ⚠️ Observação: o comentário diz "status code 400" mas o código usa 500 — são códigos diferentes
-            res.status(500).json("Erro ao recuperar as informações do aluno.");
+            console.error(`Erro ao buscar empréstimo: ${error}`);
+            res.status(500).json({ mensagem: "Erro ao recuperar as informações do empréstimo." });
         }
     }
 
