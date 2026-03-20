@@ -174,35 +174,35 @@ class Livro {
             // Livros com status FALSE foram removidos logicamente e não devem aparecer
             const querySelectLivro = `
                 SELECT id_livro, titulo, autor, editora, ano_publicacao, isbn,
-                       quant_total, quant_disponivel,
-                       valor_aquisicao, status_livro_emprestado, status_livro
+                       quant_total, quant_disponivel, valor_aquisicao, 
+                       status_livro_emprestado, status_livro
                 FROM Livro
                 WHERE status_livro = TRUE;
             `;
-
+    
             // Executa a query e aguarda o resultado do banco
             const respostaBD = await database.query(querySelectLivro);
-
+    
             // .map() transforma cada linha retornada em um objeto LivroDTO
             // LivroDTO é um objeto simples de dados (sem métodos), diferente da classe Livro
             const listaDeLivros: Array<LivroDTO> = respostaBD.rows.map((livro) => ({
-                id_livro: livro.id_livro,
-                titulo: livro.titulo,
-                autor: livro.autor,
-                editora: livro.editora,
-                ano_publicacao: livro.ano_publicacao,
-                isbn: livro.isbn,
-                quant_total: livro.quant_total,
-                quant_disponivel: livro.quant_disponivel,
-                quant_aquisicao: livro.quant_aquisicao,
-                valor_aquisicao: livro.valor_aquisicao,
+                id_livro:                livro.id_livro,
+                titulo:                  livro.titulo,
+                autor:                   livro.autor,
+                editora:                 livro.editora,
+                ano_publicacao:          livro.ano_publicacao,
+                isbn:                    livro.isbn,
+                quant_total:             livro.quant_total,
+                quant_disponivel:        livro.quant_disponivel,
+                quant_aquisicao:         livro.quant_aquisicao,
+                valor_aquisicao:         livro.valor_aquisicao,
                 status_livro_emprestado: livro.status_livro_emprestado,
-                status_livro: livro.status_livro
+                status_livro:            livro.status_livro
             }));
-
+    
             // Retorna a lista de livros (pode ser array vazio se nenhum for encontrado)
             return listaDeLivros;
-
+    
         } catch (error) {
             // Exibe o erro no fluxo correto (stderr) e retorna null para indicar falha
             console.error(`Erro ao listar livros: ${error}`);
@@ -219,35 +219,47 @@ class Livro {
     // Recebe o ID do livro e retorna um único LivroDTO ou null
     static async listarLivro(id_livro: number): Promise<LivroDTO | null> {
         try {
-            // Query SQL que busca um livro específico pelo ID
-            // O "$1" é um placeholder substituído pelo valor real (proteção contra SQL Injection)
-            const querySelectLivro = `SELECT * FROM livro WHERE id_livro = $1`;
-
+            // Query com colunas explícitas em vez de SELECT * — mais seguro e eficiente
+            // O $1 é um parâmetro preparado (prepared statement), protegendo contra SQL Injection
+            const querySelectLivro = `
+                SELECT id_livro, titulo, autor, editora, ano_publicacao, isbn,
+                       quant_total, quant_disponivel, valor_aquisicao,
+                       status_livro_emprestado, status_livro
+                FROM Livro
+                WHERE id_livro = $1;
+            `;
+    
             // Executa a query passando o id_livro como parâmetro (substitui o $1)
             const respostaBD = await database.query(querySelectLivro, [id_livro]);
-
-            // Monta o objeto LivroDTO com os dados da primeira (e única) linha retornada
-            // rows[0] acessa o primeiro elemento do array de resultados
+    
+            // Se nenhuma linha foi retornada, o livro não existe — retorna null imediatamente
+            // Isso evita um erro de runtime ao tentar acessar rows[0] em um array vazio
+            if (respostaBD.rows.length === 0) return null;
+    
+            // Desestrutura a primeira (e única) linha para facilitar a leitura
+            const livro = respostaBD.rows[0];
+    
+            // Monta e retorna o objeto LivroDTO com os dados do banco
             const livroDTO: LivroDTO = {
-                id_livro: respostaBD.rows[0].id_livro,
-                titulo: respostaBD.rows[0].titulo,
-                autor: respostaBD.rows[0].autor,
-                editora: respostaBD.rows[0].editora,
-                ano_publicacao: respostaBD.rows[0].ano_publicacao,
-                isbn: respostaBD.rows[0].isbn,
-                quant_total: respostaBD.rows[0].quant_total,
-                quant_disponivel: respostaBD.rows[0].quant_disponivel,
-                quant_aquisicao: respostaBD.rows[0].quant_aquisicao,
-                valor_aquisicao: respostaBD.rows[0].valor_aquisicao,
-                status_livro_emprestado: respostaBD.rows[0].status_livro_emprestado,
-                status_livro: respostaBD.rows[0].status_livro
+                id_livro:                livro.id_livro,
+                titulo:                  livro.titulo,
+                autor:                   livro.autor,
+                editora:                 livro.editora,
+                ano_publicacao:          livro.ano_publicacao,
+                isbn:                    livro.isbn,
+                quant_total:             livro.quant_total,
+                quant_disponivel:        livro.quant_disponivel,
+                quant_aquisicao:         livro.quant_aquisicao,
+                valor_aquisicao:         livro.valor_aquisicao,
+                status_livro_emprestado: livro.status_livro_emprestado,
+                status_livro:            livro.status_livro
             };
-
-            // Retorna o objeto LivroDTO preenchido com os dados do banco
+    
             return livroDTO;
+    
         } catch (error) {
-            // Exibe o erro no console e retorna null em caso de falha
-            console.error(`Erro ao realizar consulta. ${error}`);
+            // Exibe o erro no fluxo correto (stderr) e retorna null para indicar falha
+            console.error(`Erro ao buscar livro: ${error}`);
             return null;
         }
     }
