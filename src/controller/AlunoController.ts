@@ -62,35 +62,31 @@ class AlunoController extends Aluno {
     // Método que recebe os dados do front-end e cria um novo aluno no banco de dados
     static async cadastrar(req: Request, res: Response) {
         try {
-            // Lê o corpo (body) da requisição HTTP e o tipifica como AlunoDTO
-            // O front-end envia os dados do novo aluno no corpo da requisição (geralmente em formato JSON)
+            // Lê os dados do novo aluno enviados no body da requisição
             const dadosRecebidos: AlunoDTO = req.body;
-
-            // Cria um novo objeto Aluno usando os dados recebidos do front-end
-            // O operador "??" define valores padrão caso os campos opcionais não tenham sido enviados
+    
+            // Cria o objeto Aluno com os dados recebidos
+            // O operador "??" define valores padrão para campos opcionais não enviados
             const novoAluno = new Aluno(
-                dadosRecebidos.nome,                                      // Nome obrigatório
-                dadosRecebidos.sobrenome,                                 // Sobrenome obrigatório
-                dadosRecebidos.data_nascimento ?? new Date("1900-01-01"), // Se não informado, usa 01/01/1900
-                dadosRecebidos.endereco ?? '',                            // Se não informado, usa string vazia
-                dadosRecebidos.email ?? '',                               // Se não informado, usa string vazia
-                dadosRecebidos.celular                                    // Celular opcional (pode ser undefined)
+                dadosRecebidos.nome,
+                dadosRecebidos.sobrenome,
+                dadosRecebidos.data_nascimento ?? new Date("1900-01-01"), // padrão: 01/01/1900
+                dadosRecebidos.endereco ?? '',
+                dadosRecebidos.email ?? '',
+                dadosRecebidos.celular  
             );
-
-            // Chama o método do model para persistir (salvar) o novo aluno no banco de dados
+    
+            // Persiste o novo aluno no banco e verifica o resultado
             const result = await Aluno.cadastrarAluno(novoAluno);
-
-            // Verifica o retorno do model: true = cadastro bem-sucedido, false = falha
+    
             if (result) {
-                // Retorna mensagem de sucesso com status HTTP 201 (Created — recurso criado com sucesso)
+                // Status 201 (Created) — recurso criado com sucesso
                 return res.status(201).json({ mensagem: `Aluno cadastrado com sucesso.` });
             } else {
-                // Retorna mensagem de erro com status HTTP 500 se o banco não conseguiu salvar
                 return res.status(500).json({ mensagem: 'Não foi possível cadastrar o aluno no banco de dados.' });
             }
         } catch (error) {
-            // Exibe o erro no console e retorna status HTTP 500 em caso de exceção inesperada
-            console.log(`Erro ao cadastrar o aluno: ${error}`);
+            console.error(`Erro ao cadastrar o aluno: ${error}`);
             return res.status(500).json({ mensagem: 'Erro ao cadastrar o aluno.' });
         }
     }
