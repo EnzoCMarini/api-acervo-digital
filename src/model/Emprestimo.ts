@@ -314,26 +314,40 @@ class Emprestimo {
         try {
             // Query SQL de atualização — o WHERE garante que apenas o empréstimo com o ID correto seja alterado
             // "RETURNING id_emprestimo" retorna o ID do registro atualizado, confirmando que ele existe
-            const queryUpdateEmprestimo = `UPDATE Emprestimo
-            SET id_aluno = $1, id_livro = $2, data_emprestimo = $3, data_devolucao = $4, status_emprestimo = $5
-            WHERE id_emprestimo = $6
-            RETURNING id_emprestimo;`;
-
+            const queryUpdateEmprestimo = `
+                UPDATE Emprestimo SET
+                    id_aluno          = $1,
+                    id_livro          = $2,
+                    data_emprestimo   = $3,
+                    data_devolucao    = $4,
+                    status_emprestimo = $5
+                WHERE id_emprestimo = $6
+                RETURNING id_emprestimo;
+            `;
+    
             // Organiza os valores em um array na mesma ordem dos placeholders da query
             // Repare que id_emprestimo vai por último ($6) pois é usado no WHERE, não no SET
-            const valores = [id_aluno, id_livro, data_emprestimo, data_devolucao, status_emprestimo, id_emprestimo];
+            const valores = [
+                id_aluno,
+                id_livro,
+                data_emprestimo,
+                data_devolucao,
+                status_emprestimo,
+                id_emprestimo
+            ];
+    
             // Executa a query de atualização e armazena o resultado
-            const resultado = await database.query(queryUpdateEmprestimo, valores);
-
+            const respostaBD = await database.query(queryUpdateEmprestimo, valores);
+    
             // Se rowCount for 0, nenhuma linha foi alterada — significa que o ID não existe no banco
-            if (resultado.rowCount === 0) {
+            if ((respostaBD.rowCount ?? 0) === 0) {
                 // Lança um erro manualmente para ser capturado pelo bloco catch abaixo
                 throw new Error('Empréstimo não encontrado.');
             }
-
+    
             // Se chegou até aqui, a atualização foi bem-sucedida — retorna true
             return true;
-
+    
         } catch (error) {
             // Captura tanto erros do banco quanto o erro lançado manualmente acima
             console.error(`Erro ao atualizar empréstimo: ${error}`);
