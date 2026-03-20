@@ -130,12 +130,11 @@ class AlunoController extends Aluno {
     // Método que recebe os novos dados do front-end e atualiza o cadastro do aluno no banco
     static async atualizar(req: Request, res: Response): Promise<Response> {
         try {
-            // Lê o corpo da requisição e tipifica como AlunoDTO
-            // O front-end envia os dados atualizados no corpo da requisição
+            // Lê os dados atualizados enviados no body da requisição
             const dadosRecebidos: AlunoDTO = req.body;
-
-            // Cria um novo objeto Aluno com os dados atualizados recebidos do front-end
-            // Mesma lógica do método cadastrar — usa "??" para garantir valores padrão nos campos opcionais
+    
+            // Cria o objeto Aluno com os dados recebidos
+            // O operador "??" define valores padrão para campos opcionais não enviados
             const aluno = new Aluno(
                 dadosRecebidos.nome,
                 dadosRecebidos.sobrenome,
@@ -144,27 +143,21 @@ class AlunoController extends Aluno {
                 dadosRecebidos.email ?? '',
                 dadosRecebidos.celular
             );
-
-            // Define o ID do aluno no objeto criado, lendo o parâmetro "id" da URL
-            // Isso é necessário para que o model saiba QUAL aluno deve ser atualizado no banco
-            // Exemplo de URL: PUT /aluno/7  →  setIdAluno(7)
+    
+            // Define o ID do aluno a partir da URL (ex: PUT /aluno/7 → setIdAluno(7))
             aluno.setIdAluno(parseInt(req.params.id as string));
-
-            // Chama o método do model para atualizar os dados do aluno no banco de dados
+    
+            // Atualiza o aluno no banco e verifica o resultado
             const result = await Aluno.atualizarAluno(aluno);
-
-            // Verifica o retorno do model: true = atualização bem-sucedida, false = falha
+    
             if (result) {
-                // Retorna mensagem de sucesso com status HTTP 200 (OK)
+                // Status 200 (OK) — atualização bem-sucedida
                 return res.status(200).json({ mensagem: "Cadastro atualizado com sucesso." });
             } else {
-                // Retorna mensagem de erro com status HTTP 500 se o banco não conseguiu atualizar
                 return res.status(500).json({ mensagem: 'Não foi possível atualizar o aluno no banco de dados.' });
             }
         } catch (error) {
-            // Registra o erro nos logs do servidor
             console.error(`Erro ao atualizar aluno: ${error}`);
-            // Retorna mensagem de erro com status HTTP 500 em caso de exceção inesperada
             return res.status(500).json({ mensagem: "Erro ao atualizar aluno." });
         }
     }
