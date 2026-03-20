@@ -41,40 +41,33 @@ class LivroController extends Livro {
     // Método que recebe os dados do front-end e cria um novo livro no banco de dados
     static async cadastrar(req: Request, res: Response) {
         try {
-            // Lê o corpo da requisição HTTP e tipifica como LivroDTO
-            // O front-end envia os dados do novo livro no corpo da requisição em formato JSON
+            // Lê os dados do novo livro enviados no body da requisição
             const dadosRecebidos: LivroDTO = req.body;
-
-            // Cria um novo objeto Livro com os dados recebidos do front-end
+    
+            // Cria o objeto Livro com os dados recebidos
+            // ano_publicacao e valor_aquisicao são opcionais — usa 0 como padrão se não informados
             const novoLivro = new Livro(
-                dadosRecebidos.titulo,              // Título do livro
-                dadosRecebidos.autor,               // Autor do livro
-                dadosRecebidos.editora,             // Editora do livro
-                // ano_publicacao é opcional no DTO — se não informado, usa 0 e converte para string "0"
-                // O .toString() é necessário pois o construtor de Livro espera uma string, não um número
-                (dadosRecebidos.ano_publicacao ?? 0).toString(),
-                dadosRecebidos.isbn,                // ISBN do livro
-                dadosRecebidos.quant_total,         // Quantidade total de exemplares
-                dadosRecebidos.quant_disponivel,    // Quantidade disponível para empréstimo
-                dadosRecebidos.quant_aquisicao,     // Quantidade adquirida
-                // valor_aquisicao é opcional no DTO — se não informado, usa 0 como padrão
+                dadosRecebidos.titulo,
+                dadosRecebidos.autor,
+                dadosRecebidos.editora,
+                (dadosRecebidos.ano_publicacao ?? 0).toString(), // construtor espera string
+                dadosRecebidos.isbn,
+                dadosRecebidos.quant_total,
+                dadosRecebidos.quant_disponivel,
+                dadosRecebidos.quant_aquisicao,
                 dadosRecebidos.valor_aquisicao ?? 0
             );
-
-            // Chama o método do model para persistir o novo livro no banco de dados
+    
+            // Persiste o novo livro no banco e verifica o resultado
             const result = await Livro.cadastrarLivro(novoLivro);
-
-            // Verifica o retorno do model: true = cadastro bem-sucedido, false = falha
+    
             if (result) {
-                // ⚠️ Observação: usa status HTTP 200 (OK) ao invés de 201 (Created)
-                // O correto para criação de recursos seria 201, como fazem os outros controllers
-                return res.status(200).json({ mensagem: 'Livro cadastrado com sucesso.' });
+                // Status 201 (Created) — recurso criado com sucesso
+                return res.status(201).json({ mensagem: 'Livro cadastrado com sucesso.' });
             } else {
-                // Retorna mensagem de erro com status HTTP 500 se o banco não conseguiu salvar
                 return res.status(500).json({ mensagem: 'Não foi possível cadastrar o livro no banco de dados.' });
             }
         } catch (error) {
-            // Exibe o erro no console e retorna status HTTP 500 em caso de exceção inesperada
             console.error(`Erro ao cadastrar o livro: ${error}`);
             return res.status(500).json({ mensagem: 'Erro ao cadastrar o livro.' });
         }
