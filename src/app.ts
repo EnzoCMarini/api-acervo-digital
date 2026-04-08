@@ -7,7 +7,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // Lê a porta do .env e converte de string para número inteiro
-const port: number = parseInt(process.env.PORT as string);
+const port: number = parseInt(process.env.SERVER_PORT as string);
 
 // Lê o host do .env — se não estiver definido, usa string vazia como padrão
 const host: string = process.env.HOST ?? "";
