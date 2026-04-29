@@ -20,13 +20,14 @@ class AlunoController extends Aluno {
     // Método estático e assíncrono — recebe a requisição HTTP e devolve a resposta com todos os alunos
     static async todos(req: Request, res: Response) {
         try {
-            // Busca todos os alunos ativos no banco
+            // Chama o método herdado do model Aluno para buscar todos os alunos ativos no banco
             const listaDeAlunos = await Aluno.listarAlunos();
-            // Retorna a lista com status 200 (OK)
+            // Retorna a lista em formato JSON com status HTTP 200 (OK — requisição bem-sucedida)
             res.status(200).json(listaDeAlunos);
         } catch (error) {
-            // Exibe o erro no servidor e retorna status 500 (Internal Server Error)
-            console.error(`Erro ao listar alunos: ${error}`);
+            // Se ocorrer qualquer erro, exibe os detalhes no console do servidor para facilitar o debug
+            console.log(`Erro ao acessar método herdado: ${error}`);
+            // Retorna uma mensagem de erro em JSON com status HTTP 500 (Internal Server Error)
             res.status(500).json("Erro ao recuperar as informações do aluno.");
         }
     }
@@ -40,15 +41,18 @@ class AlunoController extends Aluno {
     // Método que busca um único aluno com base no ID informado na URL (ex: GET /aluno/5)
     static async aluno(req: Request, res: Response) {
         try {
-            // Lê o parâmetro "id" da URL e converte de string para número inteiro
+            // Lê o parâmetro "id" da URL (req.params.id) e converte de string para número inteiro
+            // O "as string" garante ao TypeScript que o valor existe e é uma string
             const idAluno = parseInt(req.params.id as string);
-    
-            // Busca o aluno pelo ID e retorna com status 200 (OK)
+
+            // Chama o método do model passando o ID para buscar o aluno específico no banco
             const aluno = await Aluno.listarAluno(idAluno);
+            // Retorna o objeto do aluno em JSON com status HTTP 200 (OK)
             res.status(200).json(aluno);
         } catch (error) {
-            // Exibe o erro no servidor e retorna status 500 (Internal Server Error)
-            console.error(`Erro ao buscar aluno: ${error}`);
+            // Exibe o erro no console do servidor
+            console.log(`Erro ao acessar método herdado: ${error}`);
+            // Retorna mensagem de erro com status HTTP 500
             res.status(500).json("Erro ao recuperar as informações do aluno.");
         }
     }
@@ -62,31 +66,35 @@ class AlunoController extends Aluno {
     // Método que recebe os dados do front-end e cria um novo aluno no banco de dados
     static async cadastrar(req: Request, res: Response) {
         try {
-            // Lê os dados do novo aluno enviados no body da requisição
+            // Lê o corpo (body) da requisição HTTP e o tipifica como AlunoDTO
+            // O front-end envia os dados do novo aluno no corpo da requisição (geralmente em formato JSON)
             const dadosRecebidos: AlunoDTO = req.body;
-    
-            // Cria o objeto Aluno com os dados recebidos
-            // O operador "??" define valores padrão para campos opcionais não enviados
+
+            // Cria um novo objeto Aluno usando os dados recebidos do front-end
+            // O operador "??" define valores padrão caso os campos opcionais não tenham sido enviados
             const novoAluno = new Aluno(
-                dadosRecebidos.nome,
-                dadosRecebidos.sobrenome,
-                dadosRecebidos.data_nascimento ?? new Date("1900-01-01"), // padrão: 01/01/1900
-                dadosRecebidos.endereco ?? '',
-                dadosRecebidos.email ?? '',
-                dadosRecebidos.celular  
+                dadosRecebidos.nome,                                      // Nome obrigatório
+                dadosRecebidos.sobrenome,                                 // Sobrenome obrigatório
+                dadosRecebidos.data_nascimento ?? new Date("1900-01-01"), // Se não informado, usa 01/01/1900
+                dadosRecebidos.endereco ?? '',                            // Se não informado, usa string vazia
+                dadosRecebidos.email ?? '',                               // Se não informado, usa string vazia
+                dadosRecebidos.celular                                    // Celular opcional (pode ser undefined)
             );
-    
-            // Persiste o novo aluno no banco e verifica o resultado
+
+            // Chama o método do model para persistir (salvar) o novo aluno no banco de dados
             const result = await Aluno.cadastrarAluno(novoAluno);
-    
+
+            // Verifica o retorno do model: true = cadastro bem-sucedido, false = falha
             if (result) {
-                // Status 201 (Created) — recurso criado com sucesso
+                // Retorna mensagem de sucesso com status HTTP 201 (Created — recurso criado com sucesso)
                 return res.status(201).json({ mensagem: `Aluno cadastrado com sucesso.` });
             } else {
+                // Retorna mensagem de erro com status HTTP 500 se o banco não conseguiu salvar
                 return res.status(500).json({ mensagem: 'Não foi possível cadastrar o aluno no banco de dados.' });
             }
         } catch (error) {
-            console.error(`Erro ao cadastrar o aluno: ${error}`);
+            // Exibe o erro no console e retorna status HTTP 500 em caso de exceção inesperada
+            console.log(`Erro ao cadastrar o aluno: ${error}`);
             return res.status(500).json({ mensagem: 'Erro ao cadastrar o aluno.' });
         }
     }
@@ -102,20 +110,23 @@ class AlunoController extends Aluno {
     static async remover(req: Request, res: Response): Promise<Response> {
         try {
             // Lê o parâmetro "id" da URL e converte para número inteiro
+            // Exemplo de URL: DELETE /aluno/3  →  idAluno = 3
             const idAluno = parseInt(req.params.id as string);
-    
-            // Remove logicamente o aluno com o ID informado e verifica o resultado
+
+            // Chama o método do model para remover (logicamente) o aluno com o ID informado
             const result = await Aluno.removerAluno(idAluno);
-    
+
             if (result) {
-                // Status 200 (OK) — remoção bem-sucedida
-                return res.status(200).json({ mensagem: 'Aluno removido com sucesso.' });
+                // Retorna mensagem de sucesso com status HTTP 201 se a remoção funcionou
+                // ⚠️ Observação: o ideal aqui seria status 200 (OK), pois 201 é para criação de recursos
+                return res.status(201).json({ mensagem: 'Aluno removido com sucesso.' });
             } else {
-                // Status 404 (Not Found) — aluno não encontrado ou já inativo
+                // Retorna status HTTP 404 (Not Found) se o aluno não foi encontrado ou já estava inativo
                 return res.status(404).json({ mensagem: 'Aluno não encontrado para exclusão.' });
             }
         } catch (error) {
-            console.error(`Erro ao remover aluno: ${error}`);
+            // Exibe o erro no console e retorna status HTTP 500 em caso de exceção
+            console.log(`Erro ao remover aluno: ${error}`)
             return res.status(500).json({ mensagem: 'Erro ao remover aluno.' });
         }
     }
@@ -130,11 +141,12 @@ class AlunoController extends Aluno {
     // Método que recebe os novos dados do front-end e atualiza o cadastro do aluno no banco
     static async atualizar(req: Request, res: Response): Promise<Response> {
         try {
-            // Lê os dados atualizados enviados no body da requisição
+            // Lê o corpo da requisição e tipifica como AlunoDTO
+            // O front-end envia os dados atualizados no corpo da requisição
             const dadosRecebidos: AlunoDTO = req.body;
-    
-            // Cria o objeto Aluno com os dados recebidos
-            // O operador "??" define valores padrão para campos opcionais não enviados
+
+            // Cria um novo objeto Aluno com os dados atualizados recebidos do front-end
+            // Mesma lógica do método cadastrar — usa "??" para garantir valores padrão nos campos opcionais
             const aluno = new Aluno(
                 dadosRecebidos.nome,
                 dadosRecebidos.sobrenome,
@@ -143,21 +155,27 @@ class AlunoController extends Aluno {
                 dadosRecebidos.email ?? '',
                 dadosRecebidos.celular
             );
-    
-            // Define o ID do aluno a partir da URL (ex: PUT /aluno/7 → setIdAluno(7))
+
+            // Define o ID do aluno no objeto criado, lendo o parâmetro "id" da URL
+            // Isso é necessário para que o model saiba QUAL aluno deve ser atualizado no banco
+            // Exemplo de URL: PUT /aluno/7  →  setIdAluno(7)
             aluno.setIdAluno(parseInt(req.params.id as string));
-    
-            // Atualiza o aluno no banco e verifica o resultado
+
+            // Chama o método do model para atualizar os dados do aluno no banco de dados
             const result = await Aluno.atualizarAluno(aluno);
-    
+
+            // Verifica o retorno do model: true = atualização bem-sucedida, false = falha
             if (result) {
-                // Status 200 (OK) — atualização bem-sucedida
+                // Retorna mensagem de sucesso com status HTTP 200 (OK)
                 return res.status(200).json({ mensagem: "Cadastro atualizado com sucesso." });
             } else {
+                // Retorna mensagem de erro com status HTTP 500 se o banco não conseguiu atualizar
                 return res.status(500).json({ mensagem: 'Não foi possível atualizar o aluno no banco de dados.' });
             }
         } catch (error) {
+            // Registra o erro nos logs do servidor
             console.error(`Erro ao atualizar aluno: ${error}`);
+            // Retorna mensagem de erro com status HTTP 500 em caso de exceção inesperada
             return res.status(500).json({ mensagem: "Erro ao atualizar aluno." });
         }
     }
